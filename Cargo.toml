@@ -33,10 +33,10 @@ redundant-clone = "warn"
 
 [workspace.dependencies]
 # self
-nexum-apdu-core = { version = "0.2", path = "nexum-apdu-core", default-features = false }
-nexum-apdu-globalplatform = { version = "0.2", path = "nexum-apdu-globalplatform", default-features = false }
+nexum-apdu-core = { version = "0.2", path = "nexum-apdu-core" }
+nexum-apdu-globalplatform = { version = "0.2", path = "nexum-apdu-globalplatform" }
 nexum-apdu-macros = { version = "0.2", path = "nexum-apdu-macros" }
-nexum-apdu-transport-pcsc = { version = "0.2", path = "nexum-apdu-transport-pcsc", default-features = false }
+nexum-apdu-transport-pcsc = { version = "0.2", path = "nexum-apdu-transport-pcsc" }
 
 # data
 bytes = { version = "1", default-features = false }

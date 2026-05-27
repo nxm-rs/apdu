@@ -21,8 +21,9 @@ apdu_pair! {
 
                 /// Create a new INITIALIZE UPDATE command with random host challenge
                 pub fn with_random_challenge() -> Self {
+                    use rand::Rng;
                     let mut challenge = [0u8; 8];
-                    rand::RngCore::fill_bytes(&mut rand::rng(), &mut challenge);
+                    rand::rng().fill_bytes(&mut challenge);
                     Self::with_challenge(challenge.to_vec())
                 }
             }

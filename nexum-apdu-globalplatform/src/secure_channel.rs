@@ -9,7 +9,7 @@ use bytes::{BufMut, Bytes, BytesMut};
 use cipher::{Iv, Key};
 
 use nexum_apdu_core::prelude::*;
-use rand::RngCore;
+use rand::Rng;
 use tracing::debug;
 
 use crate::commands::external_authenticate::{ExternalAuthenticateCommand, ExternalAuthenticateOk};
