@@ -1,0 +1,76 @@
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.94"
+license = "AGPL-3.0-or-later"
+homepage = "https://nxm.rs"
+repository = "https://github.com/nxm-rs/nexum-apdu"
+exclude = [".github/"]
+authors = ["Nexum Contributors"]
+
+[workspace]
+members = [
+    "nexum-apdu-core",
+    "nexum-apdu-globalplatform",
+    "nexum-apdu-macros",
+    "nexum-apdu-transport-pcsc",
+]
+resolver = "2"
+
+[workspace.lints.rust]
+missing-debug-implementations = "warn"
+missing-docs = "warn"
+unreachable-pub = "warn"
+unused-must-use = "deny"
+rust-2018-idioms = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+missing-const-for-fn = "warn"
+use-self = "warn"
+option-if-let-else = "warn"
+redundant-clone = "warn"
+
+[workspace.dependencies]
+# self
+nexum-apdu-core = { version = "0.2", path = "nexum-apdu-core", default-features = false }
+nexum-apdu-globalplatform = { version = "0.2", path = "nexum-apdu-globalplatform", default-features = false }
+nexum-apdu-macros = { version = "0.2", path = "nexum-apdu-macros" }
+nexum-apdu-transport-pcsc = { version = "0.2", path = "nexum-apdu-transport-pcsc", default-features = false }
+
+# data
+bytes = { version = "1", default-features = false }
+hex = "0.4"
+iso7816-tlv = "0.4"
+
+# crypto
+cbc = { version = "0.1", default-features = false }
+cbc-mac = { version = "0.1", default-features = false }
+cipher = { version = "0.4", default-features = false }
+des = { version = "0.8", default-features = false }
+zeroize = { version = "1", features = ["derive"] }
+rand = "0.10"
+
+# transport
+pcsc = { version = "2", default-features = false }
+crossbeam-channel = { version = "0.5", default-features = false }
+
+# proc macros
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full", "extra-traits"] }
+heck = "0.5"
+
+# tracing
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "serde"] }
+
+# cli / ui
+clap = { version = "4", features = ["derive"] }
+
+# zip (for globalplatform CAP file loading)
+zip = { version = "4", default-features = false }
+
+# misc
+thiserror = { version = "2", default-features = false }
+derive_more = { version = "2", default-features = false, features = ["display"] }
