@@ -6,7 +6,8 @@
 use std::io::{self, Write};
 use std::path::PathBuf;
 
-use nexum_apdu_globalplatform::{DefaultGlobalPlatform, load::LoadCommandStream};
+use nexum_apdu_core::prelude::CardExecutor;
+use nexum_apdu_globalplatform::{GPSecureChannel, GlobalPlatform, Keys, load::LoadCommandStream};
 use nexum_apdu_transport_pcsc::PcscDeviceManager;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -51,8 +52,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Using reader: {}", reader.name());
 
-    // Create GlobalPlatform instance
-    let mut gp = DefaultGlobalPlatform::connect(reader.name())?;
+    let transport = manager.open_reader(reader.name())?;
+    let executor = CardExecutor::new(GPSecureChannel::new(transport, Keys::default()));
+    let mut gp = GlobalPlatform::new(executor);
 
     // Select the Card Manager
     println!("Selecting Card Manager...");

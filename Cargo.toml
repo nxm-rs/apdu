@@ -12,6 +12,7 @@ authors = ["Nexum Contributors"]
 members = [
     "nexum-apdu-core",
     "nexum-apdu-globalplatform",
+    "nexum-apdu-globalplatform-cli",
     "nexum-apdu-macros",
     "nexum-apdu-transport-pcsc",
 ]
@@ -35,6 +36,7 @@ redundant-clone = "warn"
 # self
 nexum-apdu-core = { version = "0.2", path = "nexum-apdu-core" }
 nexum-apdu-globalplatform = { version = "0.2", path = "nexum-apdu-globalplatform" }
+nexum-apdu-globalplatform-cli = { version = "0.2", path = "nexum-apdu-globalplatform-cli" }
 nexum-apdu-macros = { version = "0.2", path = "nexum-apdu-macros" }
 nexum-apdu-transport-pcsc = { version = "0.2", path = "nexum-apdu-transport-pcsc" }
 

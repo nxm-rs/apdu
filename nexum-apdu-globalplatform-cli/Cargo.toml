@@ -1,0 +1,27 @@
+[package]
+name = "nexum-apdu-globalplatform-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license = "AGPL-3.0-or-later"
+repository.workspace = true
+description = "Command-line GlobalPlatform card management tools backed by PC/SC"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "gp-tools"
+path = "src/bin/gp-tools.rs"
+
+[dependencies]
+nexum-apdu-core.workspace = true
+nexum-apdu-globalplatform.workspace = true
+nexum-apdu-transport-pcsc.workspace = true
+
+cipher = { workspace = true, features = ["block-padding"] }
+clap = { workspace = true, features = ["derive"] }
+hex.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }

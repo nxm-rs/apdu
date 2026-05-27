@@ -15,7 +15,6 @@ workspace = true
 # APDU dependencies
 nexum-apdu-core.workspace = true
 nexum-apdu-macros.workspace = true
-nexum-apdu-transport-pcsc.workspace = true
 
 # Data handling
 bytes.workspace = true
@@ -29,9 +28,8 @@ cipher = { workspace = true, features = ["block-padding"] }
 des.workspace = true
 zeroize = { workspace = true, optional = true }
 
-# CLI & UI
+# CLI (used by the cap-info inspector)
 clap = { workspace = true, features = ["derive"] }
-tracing-subscriber = { workspace = true, features = ["ansi", "env-filter", "fmt"] }
 tracing.workspace = true
 
 # Utilities
@@ -47,3 +45,8 @@ zeroize = ["dep:zeroize", "cipher/zeroize", "des/zeroize", "cipher/zeroize"]
 
 [dev-dependencies]
 hex-literal = "1"
+# Examples wire up a PC/SC reader directly. The library proper stays
+# transport-agnostic — the runnable CLI (gp-tools) lives in the
+# sibling `nexum-apdu-globalplatform-cli` crate.
+nexum-apdu-transport-pcsc.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }

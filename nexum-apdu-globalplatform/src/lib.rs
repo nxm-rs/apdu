@@ -21,14 +21,13 @@ pub mod util;
 pub use application::GlobalPlatform;
 pub use error::{CoreResultExt, Error, Result, ResultExt};
 pub use load::CapFileInfo;
-use nexum_apdu_core::prelude::*;
-use nexum_apdu_transport_pcsc::{PcscConfig, PcscDeviceManager, PcscTransport};
 pub use secure_channel::GPSecureChannel;
 pub use session::{Keys, Session};
 
 // Re-export from nexum_apdu_core for convenience
 pub use nexum_apdu_core::ResponseAwareExecutor;
 pub use nexum_apdu_core::executor::SecureChannelExecutor;
+pub use nexum_apdu_core::prelude::Executor;
 pub use nexum_apdu_core::secure_channel::SecurityLevel;
 
 // Export main commands
@@ -40,29 +39,6 @@ pub trait GlobalPlatformExecutor: Executor + ResponseAwareExecutor + SecureChann
 impl<T> GlobalPlatformExecutor for T where
     T: Executor + ResponseAwareExecutor + SecureChannelExecutor
 {
-}
-
-/// Default GlobalPlatform implementation using PCSC transport with secure channel
-pub type DefaultGlobalPlatform = GlobalPlatform<CardExecutor<GPSecureChannel<PcscTransport>>>;
-
-impl DefaultGlobalPlatform {
-    /// Connect to a card reader with the given name
-    pub fn connect(reader_name: &str) -> Result<Self> {
-        let config = PcscConfig::default();
-        let manager = PcscDeviceManager::new()
-            .map_err(|e| Error::message(format!("Failed to create PCSC device manager: {e}")))?;
-        let transport = manager
-            .open_reader_with_config(reader_name, config)
-            .map_err(|e| Error::message(format!("Failed to open reader: {e}")))?;
-
-        // Create secure channel with default keys
-        let secure_channel = GPSecureChannel::new(transport, Keys::default());
-
-        // Create executor with secure channel
-        let executor = CardExecutor::new(secure_channel);
-
-        Ok(Self::new(executor))
-    }
 }
 
 /// Convenience functions for common operations

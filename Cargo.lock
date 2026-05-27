@@ -530,6 +530,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nexum-apdu-globalplatform-cli"
+version = "0.2.0"
+dependencies = [
+ "cipher",
+ "clap",
+ "hex",
+ "nexum-apdu-core",
+ "nexum-apdu-globalplatform",
+ "nexum-apdu-transport-pcsc",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "nexum-apdu-macros"
 version = "0.2.0"
 dependencies = [
@@ -553,15 +567,6 @@ dependencies = [
  "nexum-apdu-macros",
  "pcsc",
  "thiserror",
-]
-
-[[package]]
-name = "nu-ansi-term"
-version = "0.50.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
-dependencies = [
- "windows-sys",
 ]
 
 [[package]]
@@ -837,7 +842,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb7f578e5945fb242538965c2d0b04418d38ec25c79d160cd279bf0731c8d319"
 dependencies = [
  "matchers",
- "nu-ansi-term",
  "once_cell",
  "regex-automata",
  "serde",
