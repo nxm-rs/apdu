@@ -3,7 +3,8 @@
 //! This example connects to a PC/SC reader, selects the ISD, opens a secure channel,
 //! and deletes a package by AID.
 
-use nexum_apdu_globalplatform::DefaultGlobalPlatform;
+use nexum_apdu_core::prelude::CardExecutor;
+use nexum_apdu_globalplatform::{GPSecureChannel, GlobalPlatform, Keys};
 use nexum_apdu_transport_pcsc::PcscDeviceManager;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,8 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Using reader: {}", reader.name());
 
-    // Create GlobalPlatform instance
-    let mut gp = DefaultGlobalPlatform::connect(reader.name())?;
+    let transport = manager.open_reader(reader.name())?;
+    let executor = CardExecutor::new(GPSecureChannel::new(transport, Keys::default()));
+    let mut gp = GlobalPlatform::new(executor);
 
     // Select the Card Manager
     println!("Selecting Card Manager...");
