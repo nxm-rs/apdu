@@ -3,7 +3,9 @@
 //! This example connects to a PC/SC reader, selects the ISD, and opens a secure channel.
 
 use nexum_apdu_core::prelude::CardExecutor;
-use nexum_apdu_globalplatform::{GPSecureChannel, GlobalPlatform, Keys, commands::select::SelectOk};
+use nexum_apdu_globalplatform::{
+    GPSecureChannel, GlobalPlatform, Keys, commands::select::SelectOk,
+};
 use nexum_apdu_transport_pcsc::PcscDeviceManager;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
