@@ -1,141 +1,111 @@
-# nexum-apdu: Smart Card APDU in Rust
+<p align="center">
+  <img src=".github/banner.svg" alt="Nexum · apdu — smart-card APDU toolkit in Rust" width="100%" />
+</p>
 
-nexum-apdu is a comprehensive toolkit for smart card communication in Rust using the APDU (Application Protocol Data Unit) protocol. Whether you're building a payment terminal, identity verification system, or HSM integration, nexum-apdu provides the foundation for secure card communications.
+A Rust toolkit for **ISO 7816 smart-card communication**. Core APDU traits, a GlobalPlatform profile, a PC/SC transport, and ergonomic macros for building typed command/response pairs.
 
-<!-- [![docs.rs](https://img.shields.io/docsrs/nexum-apdu-core/latest)](https://docs.rs/nexum-apdu-core) -->
-<!-- [![Crates.io](https://img.shields.io/crates/v/nexum-apdu-core)](https://crates.io/crates/nexum-apdu-core) -->
+This is the substrate the rest of the Nexum hardware-signing stack sits on: [`nxm-rs/keycard`](https://github.com/nxm-rs/keycard) drives Status Keycards through these primitives; [`nxm-rs/wallet`](https://github.com/nxm-rs/wallet) layers an NFC transport on top of the same `CardTransport` trait for mobile.
 
-Unlock the cryptographic conversations that smart cards are dying to have with nexum-apdu as your trusted interpreter.
+> Looking for the org overview? See **[github.com/nxm-rs](https://github.com/nxm-rs)**.
 
-## Installation
+---
 
-The easiest way to get started is to add the core crate:
+## Status
 
-```sh
-cargo add nexum-apdu-core
-```
+| | |
+|---|---|
+| Version | **0.2.0** · pre-release |
+| MSRV | Rust 1.94 · edition 2024 |
+| Transports | PC/SC (this repo) · NFC (see [`nxm-rs/wallet`](https://github.com/nxm-rs/wallet) `nexum-apdu-transport-nfc`) |
+| License | [AGPL-3.0-or-later](./LICENSE) |
 
-For PC/SC reader support, add:
+> Pre-release. APIs may change. Not yet on crates.io. Path note: **this repo was renamed** from `nexum-apdu` to `apdu` on 2026-05-29. GitHub redirects old URLs. Crate names (`nexum-apdu*`) are unchanged for now to keep `cargo add` working.
 
-```sh
-cargo add nexum-apdu-transport-pcsc
-```
+---
 
-For GlobalPlatform card management:
+## Crates
 
-```sh
-cargo add nexum-apdu-globalplatform
-```
+| Crate | What it is |
+|---|---|
+| **[`nexum-apdu-core`](./nexum-apdu-core)** | Core types: `Apdu`, `Command`, `Response`, `CardTransport`, `CardExecutor`, errors |
+| **[`nexum-apdu-globalplatform`](./nexum-apdu-globalplatform)** | GlobalPlatform commands (SELECT, INSTALL, LOAD, DELETE, secure channel) |
+| **[`nexum-apdu-globalplatform-cli`](./nexum-apdu-globalplatform-cli)** | CLI for card administration via GlobalPlatform |
+| **[`nexum-apdu-macros`](./nexum-apdu-macros)** | Derive macros for typed command/response APDU definitions |
+| **[`nexum-apdu-transport-pcsc`](./nexum-apdu-transport-pcsc)** | PC/SC `CardTransport` implementation (desktop readers) |
 
-For APDU command/response pair macro support:
+For NFC transport see `rust/nexum-apdu-transport-nfc` in [`nxm-rs/wallet`](https://github.com/nxm-rs/wallet) — it implements the same `CardTransport` trait against a Dart-side flutter_nfc_kit callback.
 
-```sh
-cargo add nexum-apdu-macros
-```
+---
 
-## Quick Start
+## Quick start
 
 ```rust
-use nexum_apdu_core::prelude::*;
-use nexum_apdu_transport_pcsc::{PcscDeviceManager, PcscConfig};
+use nexum_apdu_core::{CardExecutor, ApduCommand};
+use nexum_apdu_transport_pcsc::{PcscDeviceManager};
 
-fn main() -> Result<(), Error> {
-    // Create a transport
-    let manager = PcscDeviceManager::new()?;
-    let readers = manager.list_readers()?;
-    let reader = readers.iter().find(|r| r.has_card()).expect("No card present");
-    let transport = manager.open_reader(reader.name())?;
+let manager = PcscDeviceManager::new()?;
+let reader  = manager.list_readers()?.into_iter().find(|r| r.has_card()).unwrap();
+let transport = manager.open_reader(reader.name())?;
+let mut exec  = CardExecutor::new_with_defaults(transport);
 
-    // Create an executor with default processors (GET RESPONSE handler)
-    let mut executor = CardExecutor::new_with_defaults(transport);
+// Define a typed command (SELECT by AID)
+let select = ApduCommand::new(0x00, 0xA4, 0x04, 0x00).with_data(b"\xA0\x00\x00\x00\x03\x00\x00\x00");
+let response = exec.execute(&select)?;
+println!("SW: {:04X}  data: {} bytes", response.status(), response.data().len());
+```
 
-    // Create a SELECT command to select a payment application
-    let aid = [0xA0, 0x00, 0x00, 0x00, 0x03, 0x10, 0x10];
-    let select_cmd = Command::new_with_data(0x00, 0xA4, 0x04, 0x00, aid.to_vec());
+Define typed commands ergonomically with the derive macros:
 
-    // Execute the command
-    let response = executor.transmit(&select_cmd)?;
+```rust
+use nexum_apdu_macros::apdu_pair;
 
-    // Parse the response
-    if response.is_success() {
-        println!("Application selected successfully");
-        if let Some(data) = response.payload() {
-            println!("FCI: {}", hex::encode_upper(data));
-        }
-    } else {
-        println!("Failed to select application: {}", response.status());
+apdu_pair! {
+    pub struct SelectCommand {
+        cla: 0x00, ins: 0xA4, p1: 0x04, p2: 0x00,
+        data: Vec<u8>,
     }
-
-    Ok(())
+    pub enum SelectResponse {
+        Success { fci: Vec<u8> } = 0x9000,
+        NotFound = 0x6A82,
+    }
 }
 ```
 
-## Overview
+---
 
-This repository contains the following crates:
+## Repository layout
 
-- [`nexum-apdu-core`]: Core traits and types for APDU operations
-- [`nexum-apdu-macros`]: Procedural macros for defining APDU commands and responses
-- [`nexum-apdu-transport-pcsc`]: PC/SC transport implementation for card readers
-- [`nexum-apdu-globalplatform`]: GlobalPlatform card management functionality
+```
+apdu/
+├── nexum-apdu-core/                 ← Apdu, Command, Response, CardTransport, CardExecutor
+├── nexum-apdu-macros/               ← derive macros for typed APDUs
+├── nexum-apdu-globalplatform/       ← GlobalPlatform commands + secure channel
+├── nexum-apdu-globalplatform-cli/   ← CLI tool
+├── nexum-apdu-transport-pcsc/       ← PC/SC transport (desktop)
+└── scripts/                         ← release + changelog tooling
+```
 
-[`nexum-apdu-core`]: https://github.com/nxm-rs/nexum/tree/main/crates/apdu/core
-[`nexum-apdu-macros`]: https://github.com/nxm-rs/nexum/tree/main/crates/apdu/macros
-[`nexum-apdu-transport-pcsc`]: https://github.com/nxm-rs/nexum/tree/main/crates/apdu/pcsc
-[`nexum-apdu-globalplatform`]: https://github.com/nxm-rs/nexum/tree/main/crates/apdu/globalplatform
+---
 
-## Features
+## Contributing
 
-- 🎯 **Abstracted transport layer** supporting different card reader types
-- 🛡️ **Secure channel support** for GlobalPlatform SCP02 protocol
-- 🧩 **Modular architecture** allowing use of only what you need
-- 📦 **Command processor pipeline** for flexible transformations
-- 📝 **Declarative command definitions** with the `apdu_pair!` macro
-- 🔄 **Response chaining support** for handling complex responses
-- 🧰 **Comprehensive prelude** for streamlined imports
+Pre-release; APIs still in flux. Open an issue before non-trivial PRs.
 
-## Documentation & Examples
+- **Rust** — `cargo fmt`, `cargo clippy -- -D warnings`. MSRV 1.94.
+- **Commits** — Conventional Commits. Changelog generated by `git-cliff` from these.
+- **DCO** — `Signed-off-by` line required on contributions.
+- **No new deps** without a justification in the PR description.
 
-For detailed documentation on each crate, please check their individual README files:
+A CLA is in [`CLA.md`](./CLA.md) and tracked in [`nxm-rs/cla-signatures`](https://github.com/nxm-rs/cla-signatures).
 
-- [nexum-apdu-core README](./core/README.md) - Core APDU abstractions and types
-- [nexum-apdu-macros README](./macros/README.md) - Procedural macros for command/response definition
-- [nexum-apdu-transport-pcsc README](./pcsc/README.md) - PC/SC transport implementation
-- [nexum-apdu-globalplatform README](./globalplatform/README.md) - GlobalPlatform operations
+## Security
 
-### Example Applications
-
-Check out these examples to see nexum-apdu in action:
-
-- [Connect to a reader](./pcsc/examples/connect.rs) - Basic card connection and communication
-- [List available readers](./pcsc/examples/list_readers.rs) - Enumerate connected card readers
-- [APDU shell](./pcsc/examples/apdu_shell.rs) - Interactive APDU command interpreter
-- [Monitor card events](./pcsc/examples/monitor_events.rs) - Track card insertion/removal events
-- [Select an application by AID](./pcsc/examples/select_aid.rs) - Select applications using their AID
-- [Install a CAP file](./globalplatform/examples/install_cap.rs) - Install Java Card applications
-
-For more examples, see the `examples` directory in each crate.
-
-## Architecture
-
-nexum-apdu is built around three main architectural layers:
-
-### Transport Layer
-
-The `CardTransport` trait handles the low-level communication with cards, providing a clean abstraction over different physical transport mechanisms.
-
-### Command Processor Layer
-
-Command processors can transform, secure, or log APDU commands before they reach the transport layer, allowing for modular protocol implementations like secure channels.
-
-### Executor Layer
-
-Executors manage the complete command execution flow, combining transports and processors to provide a high-level interface for applications.
+See [SECURITY.md](https://github.com/nxm-rs/.github/blob/main/SECURITY.md) on the org `.github` repo. Findings in APDU framing, secure-channel handling, or transport boundaries are high-value — please use GitHub Security Advisories on this repo for those.
 
 ## License
 
-Licensed under the [AGPL License](./LICENSE) or http://www.gnu.org/licenses/agpl-3.0.html.
+AGPL-3.0-or-later. See [LICENSE](./LICENSE).
 
-## Contributions
-
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in these crates by you shall be licensed as above, without any additional terms or conditions.
+```
+●  AGPL-3.0  ·  pre-release  ·  the bytes under keycard
+```
